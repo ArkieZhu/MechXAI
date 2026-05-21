@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W1 打卡表 · 2026.05.13-05.17</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:"Microsoft YaHei","微软雅黑","PingFang SC",sans-serif;background:#f0f2f5;color:#333;padding:30px}
+        .container{max-width:1100px;margin:0 auto}
+        .main-title{text-align:center;font-size:28px;font-weight:700;color:#2F5496;margin-bottom:6px;padding:15px;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);cursor:text;transition:box-shadow .2s}
+        .main-title.editing{box-shadow:0 0 0 3px #2F5496,0 2px 8px rgba(0,0,0,.08);background:#fffbe6}
+        .sub-title{text-align:center;font-size:15px;color:#666;margin-bottom:20px;padding:8px;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:text;transition:box-shadow .2s,background .2s}
+        .sub-title.editing{box-shadow:0 0 0 3px #2F5496,0 2px 8px rgba(0,0,0,.06);background:#fffbe6}
+        .section{background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;overflow:hidden}
+        .section-title{background:#d6e4f0;color:#2F5496;font-size:16px;font-weight:700;padding:10px 16px;border-left:4px solid #2F5496;display:flex;align-items:center;gap:8px}
+        .section-body{padding:12px 16px}
+        .info-row{display:flex;align-items:center;gap:10px;padding:5px 0;flex-wrap:wrap}
+        .info-label{font-weight:700;color:#2F5496;min-width:70px;font-size:14px}
+        .info-value{border:1px dashed #ccc;padding:4px 10px;border-radius:4px;min-width:100px;background:#fafafa;cursor:text;transition:border-color .2s,background .2s,box-shadow .2s}
+        .info-value:hover{border-color:#8aa9d6;background:#f0f4ff}
+        .info-value:focus,.info-value.editing{border-color:#2F5496;background:#fffbe6;box-shadow:0 0 0 2px rgba(47,84,150,.15);outline:0}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th{background:#2F5496;color:#fff;font-weight:700;padding:8px 6px;text-align:center;border:1px solid #1e3d6b;white-space:nowrap}
+        td{border:1px solid #ddd;padding:6px;text-align:center;min-height:30px}
+        .td-left{text-align:left}
+        .row-bold{font-weight:700}
+        td[contenteditable="true"]{cursor:text;transition:background .2s,box-shadow .2s}
+        td[contenteditable="true"]:hover{background:#f0f4ff}
+        td[contenteditable="true"]:focus{background:#fffbe6;box-shadow:inset 0 0 0 2px rgba(47,84,150,.2);outline:0}
+        .tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:12px;margin:1px}
+        .tag-p0{background:#ff4d4f;color:#fff}
+        .tag-p1{background:#fa8c16;color:#fff}
+        .tag-p2{background:#52c41a;color:#fff}
+        .status-done,.status-wip,.status-todo{display:inline-block;padding:2px 10px;border-radius:3px;font-weight:700}
+        .status-done{color:#fff;background:#52c41a}
+        .status-wip{color:#fff;background:#fa8c16}
+        .status-todo{color:#fff;background:#999}
+        .daily-status-label{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:3px;font-size:12px;font-weight:700;cursor:pointer;background:#f0f0f0;color:#999;border:1px solid #ddd;transition:all .2s}
+        .daily-status-label.checked{background:#f6ffed;color:#52c41a;border-color:#52c41a}
+        .daily-status-label:hover{opacity:.8}
+        .daily-status-label input[type="checkbox"]{width:14px;height:14px;cursor:pointer}
+        .summary-box{background:#f5f7fa;border:1px solid #e8e8e8;border-radius:6px;padding:12px 16px;margin-top:12px}
+        .summary-box .stat-item{display:inline-block;margin-right:28px;font-size:14px}
+        .stat-item .num{font-size:26px;font-weight:700;color:#2F5496}
+        .stat-item .num.green{color:#52c41a}
+        .stat-item .num.orange{color:#fa8c16}
+        .progress-bar{background:#e8e8e8;border-radius:10px;height:24px;margin:4px 0;position:relative;cursor:pointer;user-select:none;touch-action:none;transition:box-shadow .15s}
+        .progress-bar:hover{box-shadow:0 0 0 2px rgba(47,84,150,.2)}
+        .progress-bar.dragging{box-shadow:0 0 0 3px #2F5496,0 0 12px rgba(47,84,150,.25);cursor:grabbing}
+        .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#52c41a,#73d13d);text-align:center;color:#fff;font-size:12px;line-height:24px;min-width:36px;max-width:100%;transition:width .05s linear;position:relative;overflow:visible;pointer-events:none}
+        .progress-bar.dragging .progress-fill{transition:none}
+        .progress-fill .pct-text{position:relative;z-index:2;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+        .drag-handle{position:absolute;right:-8px;top:-4px;width:16px;height:32px;background:#fff;border:2px solid #2F5496;border-radius:4px;cursor:ew-resize;z-index:5;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.15);opacity:0;transition:opacity .2s}
+        .progress-bar:hover .drag-handle{opacity:1}
+        .progress-bar.dragging .drag-handle{opacity:1;background:#2F5496;border-color:#fff}
+        .drag-handle::after{content:"\2261";font-size:14px;font-weight:700;color:#2F5496;line-height:1}
+        .progress-bar.dragging .drag-handle::after{color:#fff}
+        .bottom-toolbar{background:#fff;border-radius:8px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+        .btn{padding:8px 20px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s}
+        .btn-primary{background:#2F5496;color:#fff}
+        .btn-primary:hover{background:#1e3d6b}
+        .btn-success{background:#52c41a;color:#fff}
+        .btn-success:hover{background:#3da815}
+        .btn-warning{background:#fa8c16;color:#fff}
+        .btn-warning:hover{background:#d9780f}
+        .btn-danger{background:#ff4d4f;color:#fff}
+        .btn-danger:hover{background:#d9363e}
+        .spacer{flex:1}
+        .checkbox-group{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+        .checkbox-group label{display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:13px}
+        .checkbox-group input[type="checkbox"]{width:16px;height:16px;cursor:pointer}
+        .day-check{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+        .day-check label{display:inline-flex;align-items:center;gap:4px;background:#f5f7fa;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:13px;border:1px solid #e8e8e8;transition:all .2s}
+        .day-check label.checked{background:#f6ffed;border-color:#52c41a;color:#52c41a}
+        .day-check label:hover{border-color:#8aa9d6}
+        .day-check input[type="checkbox"]{width:15px;height:15px;cursor:pointer}
+        .edit-indicator{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#999;padding:2px 8px;border-radius:10px;background:#f5f5f5}
+        .edit-indicator.active{color:#2F5496;background:#d6e4f0}
+        .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:#333;color:#fff;padding:10px 24px;border-radius:6px;font-size:14px;opacity:0;transition:all .3s ease;z-index:9999;pointer-events:none}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+        @media print{body{background:#fff;padding:10px}.bottom-toolbar{display:none}.section{break-inside:avoid;box-shadow:none;border:1px solid #ddd}.drag-handle{display:none!important}.edit-indicator{display:none!important}}
+        @media(max-width:768px){body{padding:10px}table{font-size:12px}th,td{padding:4px}.info-row{flex-direction:column;align-items:flex-start}.summary-box .stat-item{display:block;margin-bottom:8px}}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="main-title" contenteditable="true" data-key="mainTitle">📋 W1 打卡表 · 起步冲刺</div>
+    <div class="sub-title" contenteditable="true" data-key="subTitle">📅 2026.05.13（周四） — 2026.05.17（周日） · 第1周 / 共34周 · 当前阶段：快速突破</div>
+
+    <div class="bottom-toolbar">
+        <button class="btn btn-success" onclick="saveToFile()">💾 下载保存</button>
+        <button class="btn btn-primary" onclick="saveToLocal()">📀 保存到浏览器</button>
+        <button class="btn btn-warning" onclick="window.print()">🖨️ 打印/导出PDF</button>
+        <button class="btn btn-danger" onclick="resetAllData()">🔄 恢复默认</button>
+        <span class="spacer"></span>
+        <span class="edit-indicator" id="editIndicator">✏️ 全部可编辑</span>
+        <span style="color:#999;font-size:12px;">Ctrl+S 快速保存</span>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <span>📅 0. 每日打卡</span>
+            <span style="font-size:12px;color:#666;font-weight:normal;"> — 每日完成任务后打勾 ✓</span>
+        </div>
+        <div class="section-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:70px;">星期</th>
+                        <th style="width:90px;">日期</th>
+                        <th>今日完成内容</th>
+                        <th style="width:100px;">状态</th>
+                        <th style="width:70px;">工时(h)</th>
+                        <th style="width:80px;">精力评价</th>
+                    </tr>
+                </thead>
+                <tbody id="dailyTableBody">
+                    <tr data-day="thu">
+                        <td class="row-bold">周四</td>
+                        <td>5.13</td>
+                        <td class="td-left" contenteditable="true" data-key="daily_thu_content">DeepSeek/Claude API申请+密钥配置；Prompt模板初版框架搭建</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label class="daily-status-label checked"><input type="checkbox" class="daily-check" data-day="thu" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="daily_thu_hours">2.5</td>
+                        <td contenteditable="true" data-key="daily_thu_energy">⭐⭐⭐</td>
+                    </tr>
+                    <tr data-day="fri">
+                        <td class="row-bold">周五</td>
+                        <td>5.14</td>
+                        <td class="td-left" contenteditable="true" data-key="daily_fri_content">API联调测试（双API请求成功）；Prompt模板扩展至15个</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label class="daily-status-label checked"><input type="checkbox" class="daily-check" data-day="fri" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="daily_fri_hours">3</td>
+                        <td contenteditable="true" data-key="daily_fri_energy">⭐⭐⭐⭐</td>
+                    </tr>
+                    <tr data-day="sat">
+                        <td class="row-bold">周六</td>
+                        <td>5.15</td>
+                        <td class="td-left" contenteditable="true" data-key="daily_sat_content">C语言指针/结构体/MCU寄存器练习题20道；GitHub仓库初始化+README</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label class="daily-status-label checked"><input type="checkbox" class="daily-check" data-day="sat" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="daily_sat_hours">4.5</td>
+                        <td contenteditable="true" data-key="daily_sat_energy">⭐⭐⭐⭐</td>
+                    </tr>
+                    <tr data-day="sun">
+                        <td class="row-bold">周日</td>
+                        <td>5.16</td>
+                        <td class="td-left" contenteditable="true" data-key="daily_sun_content">Git分支策略配置（main/dev）；W1周报；风险评估表；剩余Prompt模板完善</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label class="daily-status-label checked"><input type="checkbox" class="daily-check" data-day="sun" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="daily_sun_hours">4</td>
+                        <td contenteditable="true" data-key="daily_sun_energy">⭐⭐⭐</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f5f7fa;">
+                        <td colspan="3" class="td-left row-bold">本周合计</td>
+                        <td><span style="color:#52c41a;font-weight:bold;" id="dailyStatus">全勤 ✓</span></td>
+                        <td><span style="font-size:18px;font-weight:bold;color:#2F5496;" id="totalHoursDisplay">14h</span></td>
+                        <td>均分 ⭐⭐⭐⭐</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="day-check" style="margin-top:10px;" id="dayCheckContainer">
+                <span class="info-label">每日编程打卡：</span>
+                <label class="checked"><input type="checkbox" data-key="check_thu" checked> 周四 5.13</label>
+                <label class="checked"><input type="checkbox" data-key="check_fri" checked> 周五 5.14</label>
+                <label class="checked"><input type="checkbox" data-key="check_sat" checked> 周六 5.15</label>
+                <label class="checked"><input type="checkbox" data-key="check_sun" checked> 周日 5.16</label>
+                <span style="color:#52c41a;font-weight:bold;margin-left:8px;" id="checkStreak">连续 4 天 ✓</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <span>✅ 一、本周交付物清单</span>
+            <span style="font-size:12px;color:#666;font-weight:normal;" id="deliverableSummary"> — 已完成5项 / 计划5项 · 完成率 100%</span>
+        </div>
+        <div class="section-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:36px;">#</th>
+                        <th style="width:90px;">维度</th>
+                        <th>交付物名称</th>
+                        <th style="width:100px;">验收标准</th>
+                        <th style="width:100px;">完成状态</th>
+                        <th style="width:80px;">佐证链接</th>
+                        <th style="width:50px;">工时</th>
+                    </tr>
+                </thead>
+                <tbody id="deliverableBody">
+                    <tr class="deliverable-row" data-idx="0">
+                        <td>1</td>
+                        <td class="row-bold td-left" contenteditable="true" data-key="deliv_0_dim">AI应用</td>
+                        <td class="td-left" contenteditable="true" data-key="deliv_0_name">DeepSeek/Claude API调用测试</td>
+                        <td contenteditable="true" data-key="deliv_0_std">双API请求成功返回</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" class="deliv-check" data-idx="0" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="deliv_0_link">GitHub/AI-Toolchain</td>
+                        <td class="deliv-hours" contenteditable="true" data-key="deliv_0_hours">4h</td>
+                    </tr>
+                    <tr class="deliverable-row" data-idx="1">
+                        <td>2</td>
+                        <td class="row-bold td-left" contenteditable="true" data-key="deliv_1_dim">AI应用</td>
+                        <td class="td-left" contenteditable="true" data-key="deliv_1_name">AI助手Prompt模板库v1.0</td>
+                        <td contenteditable="true" data-key="deliv_1_std">≥15个机械领域模板</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" class="deliv-check" data-idx="1" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="deliv_1_link">GitHub/AI-Toolchain/Prompt/</td>
+                        <td class="deliv-hours" contenteditable="true" data-key="deliv_1_hours">3h</td>
+                    </tr>
+                    <tr class="deliverable-row" data-idx="2">
+                        <td>3</td>
+                        <td class="row-bold td-left" contenteditable="true" data-key="deliv_2_dim">系统集成</td>
+                        <td class="td-left" contenteditable="true" data-key="deliv_2_name">C语言基础回顾：指针/结构体/内存管理</td>
+                        <td contenteditable="true" data-key="deliv_2_std">完成20道编程练习题</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" class="deliv-check" data-idx="2" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="deliv_2_link">GitHub/Embedded/CReview/</td>
+                        <td class="deliv-hours" contenteditable="true" data-key="deliv_2_hours">4h</td>
+                    </tr>
+                    <tr class="deliverable-row" data-idx="3">
+                        <td>4</td>
+                        <td class="row-bold td-left" contenteditable="true" data-key="deliv_3_dim">项目管理</td>
+                        <td class="td-left" contenteditable="true" data-key="deliv_3_name">GitHub仓库初始化 + Git分支策略</td>
+                        <td contenteditable="true" data-key="deliv_3_std">README完整 + main/dev分支</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" class="deliv-check" data-idx="3" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="deliv_3_link">github.com/mech-ai-toolkit</td>
+                        <td class="deliv-hours" contenteditable="true" data-key="deliv_3_hours">2h</td>
+                    </tr>
+                    <tr class="deliverable-row" data-idx="4">
+                        <td>5</td>
+                        <td class="row-bold td-left" contenteditable="true" data-key="deliv_4_dim">项目管理</td>
+                        <td class="td-left" contenteditable="true" data-key="deliv_4_name">W1周报 + 风险评估表v1.0</td>
+                        <td contenteditable="true" data-key="deliv_4_std">含进度、问题、下周计划</td>
+                        <td>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" class="deliv-check" data-idx="4" checked> 完成</label>
+                            </div>
+                        </td>
+                        <td contenteditable="true" data-key="deliv_4_link">Reports/W1_Report.md</td>
+                        <td class="deliv-hours" contenteditable="true" data-key="deliv_4_hours">1h</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f5f7fa;">
+                        <td></td>
+                        <td class="row-bold td-left" colspan="2">交付物统计</td>
+                        <td colspan="2"><span style="font-weight:bold;color:#52c41a;" id="delivStats">完成 5 项 / 计划 5 项（完成率 100%）</span></td>
+                        <td>总工时</td>
+                        <td><span style="font-size:18px;font-weight:bold;color:#2F5496;" id="delivTotalHours">14h</span></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <span>⏱ 二、工时投入分布</span>
+            <span style="font-size:12px;color:#666;font-weight:normal;"> — 计划15h/周 · 实际<span id="actualTotalHours">14</span>h · 达成率<span id="achieveRate">93</span>%</span>
+        </div>
+        <div class="section-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:120px;">能力维度</th>
+                        <th style="width:55px;">计划</th>
+                        <th style="width:55px;">实际</th>
+                        <th style="min-width:200px;">分布占比</th>
+                        <th style="width:90px;">达标判定</th>
+                    </tr>
+                </thead>
+                <tbody id="dimensionBody">
+                    <tr data-dim="me">
+                        <td class="row-bold td-left">🔵 机械工程</td>
+                        <td class="dim-plan">3</td>
+                        <td contenteditable="true" class="dim-actual" data-key="dim_me_actual">0</td>
+                        <td>
+                            <div class="progress-bar" data-dim="me">
+                                <div class="progress-fill" style="width:0%;background:linear-gradient(90deg,#2F5496,#5B8BD4);">
+                                    <span class="pct-text">0%</span>
+                                </div>
+                                <div class="drag-handle"></div>
+                            </div>
+                        </td>
+                        <td class="dim-status">⏳ W2开始</td>
+                    </tr>
+                    <tr data-dim="ai">
+                        <td class="row-bold td-left">🟢 AI应用</td>
+                        <td class="dim-plan">5</td>
+                        <td contenteditable="true" class="dim-actual" data-key="dim_ai_actual">7</td>
+                        <td>
+                            <div class="progress-bar" data-dim="ai">
+                                <div class="progress-fill" style="width:50%;background:linear-gradient(90deg,#52c41a,#73d13d);">
+                                    <span class="pct-text">50%</span>
+                                </div>
+                                <div class="drag-handle"></div>
+                            </div>
+                        </td>
+                        <td class="dim-status"><span style="color:#52c41a;font-weight:bold;">达标 ✓</span></td>
+                    </tr>
+                    <tr data-dim="si">
+                        <td class="row-bold td-left">🟠 系统集成</td>
+                        <td class="dim-plan">4</td>
+                        <td contenteditable="true" class="dim-actual" data-key="dim_si_actual">4</td>
+                        <td>
+                            <div class="progress-bar" data-dim="si">
+                                <div class="progress-fill" style="width:29%;background:linear-gradient(90deg,#fa8c16,#f5a623);">
+                                    <span class="pct-text">29%</span>
+                                </div>
+                                <div class="drag-handle"></div>
+                            </div>
+                        </td>
+                        <td class="dim-status"><span style="color:#52c41a;font-weight:bold;">达标 ✓</span></td>
+                    </tr>
+                    <tr data-dim="rb">
+                        <td class="row-bold td-left">🔴 人形机器人</td>
+                        <td class="dim-plan">2</td>
+                        <td contenteditable="true" class="dim-actual" data-key="dim_rb_actual">0</td>
+                        <td>
+                            <div class="progress-bar" data-dim="rb">
+                                <div class="progress-fill" style="width:0%;background:linear-gradient(90deg,#ff4d4f,#ff7875);">
+                                    <span class="pct-text">0%</span>
+                                </div>
+                                <div class="drag-handle"></div>
+                            </div>
+                        </td>
+                        <td class="dim-status">⏳ W2开始</td>
+                    </tr>
+                    <tr data-dim="pm">
+                        <td class="row-bold td-left">🟣 项目管理</td>
+                        <td class="dim-plan">1</td>
+                        <td contenteditable="true" class="dim-actual" data-key="dim_pm_actual">3</td>
+                        <td>
+                            <div class="progress-bar" data-dim="pm">
+                                <div class="progress-fill" style="width:21%;background:linear-gradient(90deg,#722ed1,#b37feb);">
+                                    <span class="pct-text">21%</span>
+                                </div>
+                                <div class="drag-handle"></div>
+                            </div>
+                        </td>
+                        <td class="dim-status"><span style="color:#52c41a;font-weight:bold;">达标 ✓</span></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f5f7fa;">
+                        <td class="row-bold td-left">合计</td>
+                        <td id="totalPlan">15</td>
+                        <td id="totalActual">14</td>
+                        <td>
+                            <div class="progress-bar" id="totalProgressBar">
+                                <div class="progress-fill" id="totalProgressFill" style="width:93%;background:linear-gradient(90deg,#2F5496,#5B8BD4);">
+                                    <span class="pct-text">93%</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span style="color:#52c41a;font-weight:bold;">总工时达标 ✓</span></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="summary-box" style="margin-top:12px;">
+                <div class="stat-item">⚙️ 机械工程：<span class="num orange" id="sumMe">0</span>h</div>
+                <div class="stat-item">🤖 AI应用：<span class="num green" id="sumAi">7</span>h</div>
+                <div class="stat-item">📡 系统集成：<span class="num green" id="sumSi">4</span>h</div>
+                <div class="stat-item">🦾 人形机器人：<span class="num orange" id="sumRb">0</span>h</div>
+                <div class="stat-item">📊 项目管理：<span class="num green" id="sumPm">3</span>h</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🎯 三、项目里程碑推进</div>
+        <div class="section-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:36px;">#</th>
+                        <th>里程碑项目</th>
+                        <th style="width:90px;">计划截止</th>
+                        <th style="width:200px;">当前进度</th>
+                        <th>本周推进内容</th>
+                        <th style="width:90px;">状态</th>
+                    </tr>
+                </thead>
+                <tbody id="milestoneBody">
+                    <tr class="milestone-row" data-ms="0">
+                        <td>1</td>
+                        <td class="td-left row-bold" contenteditable="true" data-key="ms_0_name">机械工程师AI助手（Prompt库+API集成）</td>
+                        <td contenteditable="true" data-key="ms_0_deadline">W1</td>
+                        <td>
+                            <div class="progress-bar milestone-bar" data-ms="0">
+                                <div class="progress-fill" style="width:100%;background:linear-gradient(90deg,#52c41a,#73d13d);">
+                                    <span class="pct-text">100%</span>
+                                </div>
+                                <div class="drag-handle"></div>
+                            </div>
+                        </td>
+                        <td class="td-left" contenteditable="true" data-key="ms_0_thisweek">✓ DeepSeek/Claude API联调通过\n✓ 15个Prompt模板归档</td>
+                        <td class="ms-status"><span class="status-done">已完成 ✓</span></td>
+                    </tr>
+                    <tr class="milestone-row" data-ms="1">
+                        <td>2</td>
+                        <td class="td-left row-bold" contenteditable="true" data-key="ms_1_name">个人知识库v0.1（ChromaDB）</td>
+                        <td contenteditable="true" data-key="ms_1_deadline">W2</td>
+                        <td>
+                            <div class="progress-bar milestone-bar" data-ms="1">
+                                <div class="progress-fill" style="width:0%;background:linear-gradient(90deg,#fa8c16,#f5a623);">
+                                    <span class="pct-text">0%</span>
+                                </div>
+                                <div class="drag-handle"></div>
+                            </div>
+                        </td>
+                        <td class="td-left" contenteditable="true" data-key="ms_1_thisweek">— 未开始（下周推进）</td>
+                        <td class="ms-status"><span class="status-todo">待开始</span></td>
+                    </tr>
+                    <tr class="milestone-row" data-ms="2">
+                        <td>3</td>
+                        <td class="td-left row-bold" contenteditable="true" data-key="ms_2_name">GitHub[mech-ai-toolkit]仓库</td>
+                        <td contenteditable="true" data-key="ms_2_deadline">W1</td>
+                        <td>
+                            <div class="progress-bar milestone-bar" data-ms="2">
+                                <div class="progress-fill" style="width:100%;background:linear-gradient(90deg,#52c41a,#73d13d);">
+                                    <span class="pct-text">100%</span>
+                                </div>
+                                <div class="drag-handle"></div>
+                            </div>
+                        </td>
+                        <td class="td-left" contenteditable="true" data-key="ms_2_thisweek">✓ 仓库初始化（README+license）\n✓ main/dev分支配置</td>
+                        <td class="ms-status"><span class="status-done">已完成 ✓</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🔧 四、技能实战验证（通过交付物证明的能力）</div>
+        <div class="section-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:36px;">#</th>
+                        <th style="width:100px;">技能类别</th>
+                        <th>技能名称</th>
+                        <th>通过哪项交付物验证</th>
+                        <th style="width:110px;">掌握程度</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><span class="tag tag-p0">AI</span></td>
+                        <td class="td-left" contenteditable="true" data-key="skill_1_name">REST API调用（DeepSeek/Claude）</td>
+                        <td class="td-left" contenteditable="true" data-key="skill_1_evidence">API测试报告：请求/响应/异常处理</td>
+                        <td contenteditable="true" data-key="skill_1_level" style="color:#52c41a;font-weight:bold;">独立完成 ✓</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><span class="tag tag-p0">AI</span></td>
+                        <td class="td-left" contenteditable="true" data-key="skill_2_name">Prompt工程（机械领域模板设计）</td>
+                        <td class="td-left" contenteditable="true" data-key="skill_2_evidence">AI助手Prompt模板库v1.0（15个模板）</td>
+                        <td contenteditable="true" data-key="skill_2_level" style="color:#fa8c16;font-weight:bold;">借助AI</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><span class="tag tag-p1">编程</span></td>
+                        <td class="td-left" contenteditable="true" data-key="skill_3_name">C语言基础：指针/结构体/内存管理</td>
+                        <td class="td-left" contenteditable="true" data-key="skill_3_evidence">20道编程练习题（含MCU寄存器操作）</td>
+                        <td contenteditable="true" data-key="skill_3_level" style="color:#52c41a;font-weight:bold;">独立完成 ✓</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><span class="tag tag-p2">项目管理</span></td>
+                        <td class="td-left" contenteditable="true" data-key="skill_4_name">Git分支管理（main/dev/release）</td>
+                        <td class="td-left" contenteditable="true" data-key="skill_4_evidence">GitHub仓库分支策略文档</td>
+                        <td contenteditable="true" data-key="skill_4_level" style="color:#52c41a;font-weight:bold;">独立完成 ✓</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📊 五、产出统计看板</div>
+        <div class="section-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:36px;">#</th>
+                        <th>产出指标</th>
+                        <th style="width:80px;">本周实际</th>
+                        <th style="width:80px;">本周目标</th>
+                        <th style="width:70px;">达标</th>
+                    </tr>
+                </thead>
+                <tbody id="statsBody">
+                    <tr data-stat="commits">
+                        <td>1</td>
+                        <td class="td-left row-bold">GitHub有意义的提交</td>
+                        <td contenteditable="true" class="stat-actual" data-key="stat_commits">8</td>
+                        <td class="stat-target" data-op=">=" data-val="4">≥4次</td>
+                        <td class="stat-result"><span class="status-done">达标 ✓</span></td>
+                    </tr>
+                    <tr data-stat="deliverables">
+                        <td>2</td>
+                        <td class="td-left row-bold">完成的交付物数量</td>
+                        <td contenteditable="true" class="stat-actual" data-key="stat_deliverables">5</td>
+                        <td class="stat-target" data-op=">=" data-val="3">≥3项</td>
+                        <td class="stat-result"><span class="status-done">达标 ✓</span></td>
+                    </tr>
+                    <tr data-stat="blogs">
+                        <td>3</td>
+                        <td class="td-left row-bold">技术博客/笔记</td>
+                        <td contenteditable="true" class="stat-actual" data-key="stat_blogs">0</td>
+                        <td class="stat-target" data-op=">=" data-val="1">≥1篇</td>
+                        <td class="stat-result"><span class="status-todo">未达标</span></td>
+                    </tr>
+                    <tr data-stat="milestones">
+                        <td>4</td>
+                        <td class="td-left row-bold">项目里程碑推进</td>
+                        <td contenteditable="true" class="stat-actual" data-key="stat_milestones">2</td>
+                        <td class="stat-target" data-op=">=" data-val="1">≥1个推进</td>
+                        <td class="stat-result"><span class="status-done">达标 ✓</span></td>
+                    </tr>
+                    <tr data-stat="hours">
+                        <td>5</td>
+                        <td class="td-left row-bold">有效投入工时</td>
+                        <td contenteditable="true" class="stat-actual" data-key="stat_hours">14</td>
+                        <td class="stat-target" data-op=">=" data-val="12">≥12h</td>
+                        <td class="stat-result"><span class="status-done">达标 ✓</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="margin-top:8px;padding:8px 12px;background:#fffbe6;border-radius:4px;font-size:13px;">
+                ⚠️ <strong>博客未达标说明</strong>：W1为起步周（5.13周三才开工），博客启动安排在第W2。全年目标12篇，节奏正常。
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📝 六、本周复盘</div>
+        <div class="section-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:100px;">项目</th>
+                        <th>内容</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="row-bold">🏆 本周最大收获</td>
+                        <td class="td-left" contenteditable="true" data-key="review_win">
+                            1. DeepSeek/Claude双API打通，验证了机械工程师AI助手的可行性<br>
+                            2. Prompt模板库15个模板覆盖了常见机械设计场景，可在实际工作中快速调用<br>
+                            3. C语言基础回顾为STM32开发做好了准备
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="row-bold">🧱 遇到的障碍</td>
+                        <td class="td-left" contenteditable="true" data-key="review_blocker">
+                            1. DeepSeek API文档版本与SDK版本不匹配，部分参数需反复试错<br>
+                            2. 周中开工只有4天，时间较紧，人形机器人调研未能启动
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="row-bold">💡 解决方案</td>
+                        <td class="td-left" contenteditable="true" data-key="review_solution">
+                            1. API调用问题：切换到REST API直调方式，避免了SDK版本依赖<br>
+                            2. 时间问题：人形机器人调研延至W2开始，利用碎片时间进行
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="row-bold">📈 下周改进点</td>
+                        <td class="td-left" contenteditable="true" data-key="review_improve">
+                            1. W2启动博客写作，利用周末集中产出<br>
+                            2. 人形机器人调研从资料收集开始，每天15-20min碎片时间<br>
+                            3. 周一开始即按计划推进，避免前松后紧
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="summary-box">
+                <div class="stat-item">✅ 本周完成交付物：<span class="num green" id="reviewDone">5</span> 项</div>
+                <div class="stat-item">📈 完成率：<span class="num green" id="reviewRate">100%</span></div>
+                <div class="stat-item">⏱ 总投入：<span class="num green" id="reviewHours">14</span>h</div>
+                <div class="stat-item">💡 连续打卡：<span class="num green" id="reviewStreak">1</span> 周</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📋 七、下周（W2）交付物承诺</div>
+        <div class="section-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:36px;">#</th>
+                        <th style="width:80px;">优先级</th>
+                        <th style="width:90px;">维度</th>
+                        <th>承诺交付物</th>
+                        <th style="width:100px;">验收标准</th>
+                        <th style="width:50px;">预计工时</th>
+                        <th style="width:80px;">前置条件</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><span class="tag tag-p0">P0</span></td>
+                        <td contenteditable="true" data-key="next_1_dim">AI应用</td>
+                        <td class="td-left" contenteditable="true" data-key="next_1_name">本地知识库v0.1（ChromaDB + 机械文档向量化）</td>
+                        <td contenteditable="true" data-key="next_1_std">可检索，召回率≥70%</td>
+                        <td contenteditable="true" data-key="next_1_hours">5h</td>
+                        <td contenteditable="true" data-key="next_1_pre">Python3.12+ChromaDB</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><span class="tag tag-p0">P0</span></td>
+                        <td contenteditable="true" data-key="next_2_dim">AI应用</td>
+                        <td class="td-left" contenteditable="true" data-key="next_2_name">技术博客第1篇 [2W启动]：《机械工程师的AI工具链》</td>
+                        <td contenteditable="true" data-key="next_2_std">草稿≥2000字</td>
+                        <td contenteditable="true" data-key="next_2_hours">3h</td>
+                        <td contenteditable="true" data-key="next_2_pre">—</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><span class="tag tag-p0">P0</span></td>
+                        <td contenteditable="true" data-key="next_3_dim">系统集成</td>
+                        <td class="td-left" contenteditable="true" data-key="next_3_name">STM32开发环境搭建 + HAL库点亮LED</td>
+                        <td contenteditable="true" data-key="next_3_std">LED点亮，环境打通</td>
+                        <td contenteditable="true" data-key="next_3_hours">4h</td>
+                        <td contenteditable="true" data-key="next_3_pre">STM32CubeIDE安装</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><span class="tag tag-p1">P1</span></td>
+                        <td contenteditable="true" data-key="next_4_dim">机械工程</td>
+                        <td class="td-left" contenteditable="true" data-key="next_4_name">SolidWorks参数化设计练习</td>
+                        <td contenteditable="true" data-key="next_4_std">3个参数化模型</td>
+                        <td contenteditable="true" data-key="next_4_hours">3h</td>
+                        <td contenteditable="true" data-key="next_4_pre">SolidWorks</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td><span class="tag tag-p1">P1</span></td>
+                        <td contenteditable="true" data-key="next_5_dim">项目管理</td>
+                        <td class="td-left" contenteditable="true" data-key="next_5_name">W2周报 + 人形机器人调研资料清单（≥20份）</td>
+                        <td contenteditable="true" data-key="next_5_std">清单分类归档</td>
+                        <td contenteditable="true" data-key="next_5_hours">2h</td>
+                        <td contenteditable="true" data-key="next_5_pre">—</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f5f7fa;">
+                        <td colspan="3" class="td-left row-bold">下周计划合计</td>
+                        <td>5项交付物（含2项P0）</td>
+                        <td>验收标准明确</td>
+                        <td><strong id="nextTotalHours">17h</strong></td>
+                        <td>略超上限，周末弹性</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div style="text-align:center;padding:16px;color:#999;font-size:12px;">
+        W1 打卡表 · 2026.05.13-05.17 · 机械XAI年度成长计划
+        <span style="margin-left:16px;" id="lastSaved"></span>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    const STORAGE_KEY = 'w1_checkin_data';
+    const DEFAULT_DATA = {daily:{thu:{content:'DeepSeek/Claude API申请+密钥配置；Prompt模板初版框架搭建',hours:'2.5',energy:'⭐⭐⭐',checked:true},fri:{content:'API联调测试（双API请求成功）；Prompt模板扩展至15个',hours:'3',energy:'⭐⭐⭐⭐',checked:true},sat:{content:'C语言指针/结构体/MCU寄存器练习题20道；GitHub仓库初始化+README',hours:'4.5',energy:'⭐⭐⭐⭐',checked:true},sun:{content:'Git分支策略配置（main/dev）；W1周报；风险评估表；剩余Prompt模板完善',hours:'4',energy:'⭐⭐⭐',checked:true}},mainTitle:'📋 W1 打卡表 · 起步冲刺',subTitle:'📅 2026.05.13（周四） — 2026.05.17（周日） · 第1周 / 共34周 · 当前阶段：快速突破',deliverables:[{dim:'AI应用',name:'DeepSeek/Claude API调用测试',std:'双API请求成功返回',done:true,link:'GitHub/AI-Toolchain',hours:'4h'},{dim:'AI应用',name:'AI助手Prompt模板库v1.0',std:'≥15个机械领域模板',done:true,link:'GitHub/AI-Toolchain/Prompt/',hours:'3h'},{dim:'系统集成',name:'C语言基础回顾：指针/结构体/内存管理',std:'完成20道编程练习题',done:true,link:'GitHub/Embedded/CReview/',hours:'4h'},{dim:'项目管理',name:'GitHub仓库初始化 + Git分支策略',std:'README完整 + main/dev分支',done:true,link:'github.com/mech-ai-toolkit',hours:'2h'},{dim:'项目管理',name:'W1周报 + 风险评估表v1.0',std:'含进度、问题、下周计划',done:true,link:'Reports/W1_Report.md',hours:'1h'}],dimensions:{me:0,ai:7,si:4,rb:0,pm:3},milestones:[{name:'机械工程师AI助手（Prompt库+API集成）',deadline:'W1',progress:100,status:'done'},{name:'个人知识库v0.1（ChromaDB）',deadline:'W2',progress:0,status:'todo'},{name:'GitHub[mech-ai-toolkit]仓库',deadline:'W1',progress:100,status:'done'}],skills:[{name:'REST API调用（DeepSeek/Claude）',evidence:'API测试报告：请求/响应/异常处理',level:'独立完成 ✓'},{name:'Prompt工程（机械领域模板设计）',evidence:'AI助手Prompt模板库v1.0（15个模板）',level:'借助AI'},{name:'C语言基础：指针/结构体/内存管理',evidence:'20道编程练习题（含MCU寄存器操作）',level:'独立完成 ✓'},{name:'Git分支管理（main/dev/release）',evidence:'GitHub仓库分支策略文档',level:'独立完成 ✓'}],stats:{commits:8,deliverables:5,blogs:0,milestones:2,hours:14},review:{win:'1. DeepSeek/Claude双API打通，验证了机械工程师AI助手的可行性\n2. Prompt模板库15个模板覆盖了常见机械设计场景\n3. C语言基础回顾为STM32开发做好了准备',blocker:'1. DeepSeek API文档版本与SDK版本不匹配\n2. 周中开工只有4天，时间较紧，人形机器人调研未能启动',solution:'1. 切换到REST API直调方式，避免了SDK版本依赖\n2. 人形机器人调研延至W2开始',improve:'1. W2启动博客写作，利用周末集中产出\n2. 人形机器人调研每天15-20min碎片时间\n3. 周一开始即按计划推进'},nextWeek:[{dim:'AI应用',name:'本地知识库v0.1（ChromaDB + 机械文档向量化）',std:'可检索，召回率≥70%',hours:'5h',pre:'Python3.12+ChromaDB'},{dim:'AI应用',name:'技术博客第1篇 [2W启动]：《机械工程师的AI工具链》',std:'草稿≥2000字',hours:'3h',pre:'—'},{dim:'系统集成',name:'STM32开发环境搭建 + HAL库点亮LED',std:'LED点亮，环境打通',hours:'4h',pre:'STM32CubeIDE安装'},{dim:'机械工程',name:'SolidWorks参数化设计练习',std:'3个参数化模型',hours:'3h',pre:'SolidWorks'},{dim:'项目管理',name:'W2周报 + 人形机器人调研资料清单（≥20份）',std:'清单分类归档',hours:'2h',pre:'—'}]};
+
+    function loadData() {
+        try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) return deepMerge(cloneData(DEFAULT_DATA), JSON.parse(raw)); }
+        catch(e) { console.warn('load fail', e); }
+        return cloneData(DEFAULT_DATA);
+    }
+    function saveData() {
+        const data = collectData();
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateLastSaved(); showToast('✅ 数据已保存'); return true; }
+        catch(e) { showToast('❌ 保存失败: ' + e.message); return false; }
+    }
+    function cloneData(o) { return JSON.parse(JSON.stringify(o)); }
+    function deepMerge(d, o) {
+        const r = cloneData(d);
+        for (const k in o) { if (o.hasOwnProperty(k)) {
+            if (typeof o[k] === 'object' && o[k] !== null && !Array.isArray(o[k])) r[k] = deepMerge(r[k]||{}, o[k]);
+            else r[k] = o[k];
+        }}
+        return r;
+    }
+    function qs(s) { return document.querySelector(s); }
+    function qsa(s) { return document.querySelectorAll(s); }
+    function qsAttr(p, s) { if (typeof p === 'string') { s = p; p = document; } return p.querySelector(s); }
+
+    function collectData() {
+        const data = cloneData(DEFAULT_DATA);
+        data.mainTitle = qs('.main-title').innerText;
+        data.subTitle = qs('.sub-title').innerText;
+        ['thu','fri','sat','sun'].forEach(d => {
+            const row = qs(`[data-day="${d}"]`);
+            if (!row) return;
+            data.daily[d].content = qsAttr(row, `[data-key="daily_${d}_content"]`).innerText;
+            data.daily[d].hours = qsAttr(row, `[data-key="daily_${d}_hours"]`).innerText;
+            data.daily[d].energy = qsAttr(row, `[data-key="daily_${d}_energy"]`).innerText;
+            const cb = row.querySelector('.daily-check');
+            data.daily[d].checked = cb ? cb.checked : false;
+        });
+        document.querySelectorAll('.deliverable-row').forEach((row, i) => {
+            if (!data.deliverables[i]) return;
+            data.deliverables[i].dim = qsAttr(row, `[data-key="deliv_${i}_dim"]`).innerText;
+            data.deliverables[i].name = qsAttr(row, `[data-key="deliv_${i}_name"]`).innerText;
+            data.deliverables[i].std = qsAttr(row, `[data-key="deliv_${i}_std"]`).innerText;
+            data.deliverables[i].done = qsAttr(row, '.deliv-check').checked;
+            data.deliverables[i].link = qsAttr(row, `[data-key="deliv_${i}_link"]`).innerText;
+            data.deliverables[i].hours = qsAttr(row, `[data-key="deliv_${i}_hours"]`).innerText;
+        });
+        ['me','ai','si','rb','pm'].forEach(k => {
+            const el = qsAttr(document, `[data-key="dim_${k}_actual"]`);
+            if (el) data.dimensions[k] = parseFloat(el.innerText) || 0;
+        });
+        document.querySelectorAll('.milestone-row').forEach((row, i) => {
+            if (!data.milestones[i]) return;
+            data.milestones[i].name = qsAttr(row, `[data-key="ms_${i}_name"]`).innerText;
+            data.milestones[i].deadline = qsAttr(row, `[data-key="ms_${i}_deadline"]`).innerText;
+            const fill = qsAttr(row, '.milestone-bar .progress-fill');
+            data.milestones[i].progress = fill ? parseInt(fill.style.width) : 0;
+            data.milestones[i].thisweek = qsAttr(row, `[data-key="ms_${i}_thisweek"]`).innerText;
+        });
+        [1,2,3,4].forEach(i => {
+            data.skills[i-1].name = qsAttr(document, `[data-key="skill_${i}_name"]`).innerText;
+            data.skills[i-1].evidence = qsAttr(document, `[data-key="skill_${i}_evidence"]`).innerText;
+            data.skills[i-1].level = qsAttr(document, `[data-key="skill_${i}_level"]`).innerText;
+        });
+        data.stats.commits = parseInt(qsAttr(document, '[data-key="stat_commits"]').innerText) || 0;
+        data.stats.deliverables = parseInt(qsAttr(document, '[data-key="stat_deliverables"]').innerText) || 0;
+        data.stats.blogs = parseInt(qsAttr(document, '[data-key="stat_blogs"]').innerText) || 0;
+        data.stats.milestones = parseInt(qsAttr(document, '[data-key="stat_milestones"]').innerText) || 0;
+        data.stats.hours = parseInt(qsAttr(document, '[data-key="stat_hours"]').innerText) || 0;
+        data.review.win = qsAttr(document, '[data-key="review_win"]').innerText;
+        data.review.blocker = qsAttr(document, '[data-key="review_blocker"]').innerText;
+        data.review.solution = qsAttr(document, '[data-key="review_solution"]').innerText;
+        data.review.improve = qsAttr(document, '[data-key="review_improve"]').innerText;
+        [1,2,3,4,5].forEach(i => {
+            data.nextWeek[i-1].dim = qsAttr(document, `[data-key="next_${i}_dim"]`).innerText;
+            data.nextWeek[i-1].name = qsAttr(document, `[data-key="next_${i}_name"]`).innerText;
+            data.nextWeek[i-1].std = qsAttr(document, `[data-key="next_${i}_std"]`).innerText;
+            data.nextWeek[i-1].hours = qsAttr(document, `[data-key="next_${i}_hours"]`).innerText;
+            data.nextWeek[i-1].pre = qsAttr(document, `[data-key="next_${i}_pre"]`).innerText;
+        });
+        return data;
+    }
+    function initDrag() {
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            if (bar.id === 'totalProgressBar') return;
+            bar.addEventListener('mousedown', function(e) {
+                startDrag(this, e);
+            });
+            bar.addEventListener('touchstart', function(e) {
+                startDrag(this, e);
+            }, { passive: false });
+        });
+    }
+
+    let dragState = null;
+
+    function startDrag(bar, e) {
+        e.preventDefault();
+        const rect = bar.getBoundingClientRect();
+        const fill = bar.querySelector('.progress-fill');
+        const pctText = fill.querySelector('.pct-text');
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        let startPct = parseInt(fill.style.width) || 0;
+        bar.classList.add('dragging');
+
+        dragState = {
+            bar: bar,
+            fill: fill,
+            pctText: pctText,
+            rect: rect,
+            offsetX: clientX - rect.left - (rect.width * startPct / 100),
+            barWidth: rect.width
+        };
+        updateEditIndicator(true);
+
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDragTouch, { passive: false });
+        document.addEventListener('touchend', endDragTouch);
+    }
+
+    function onDrag(e) {
+        if (!dragState) return;
+        const rect = dragState.bar.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        let pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        pct = Math.round(pct);
+        dragState.fill.style.width = pct + '%';
+        if (dragState.pctText) dragState.pctText.textContent = pct + '%';
+        syncProgressBar(dragState.bar, pct);
+    }
+
+    function onDragTouch(e) {
+        if (!dragState) return;
+        e.preventDefault();
+        const rect = dragState.bar.getBoundingClientRect();
+        const x = e.touches[0].clientX - rect.left;
+        let pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        pct = Math.round(pct);
+        dragState.fill.style.width = pct + '%';
+        if (dragState.pctText) dragState.pctText.textContent = pct + '%';
+        syncProgressBar(dragState.bar, pct);
+    }
+
+    function endDrag(e) {
+        if (!dragState) return;
+        dragState.bar.classList.remove('dragging');
+        updateEditIndicator(false);
+        dragState = null;
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', endDrag);
+        document.removeEventListener('touchmove', onDragTouch);
+        document.removeEventListener('touchend', endDragTouch);
+        autoSave();
+    }
+
+    function endDragTouch(e) {
+        endDrag(e);
+    }
+
+    function syncProgressBar(bar, pct) {
+        const dim = bar.getAttribute('data-dim');
+        if (dim) {
+            const planEl = bar.closest('tr')?.querySelector('.dim-plan');
+            const plan = planEl ? parseInt(planEl.innerText) : 1;
+            const totalPct = Math.round((pct / 100) * plan);
+            const actualEl = bar.closest('tr')?.querySelector('.dim-actual');
+            if (actualEl) {
+                actualEl.innerText = totalPct;
+            }
+            recalcTotalHours();
+        }
+        const msIdx = bar.getAttribute('data-ms');
+        if (msIdx !== null) {
+            updateMilestoneStatus(bar, pct);
+        }
+    }
+
+    function updateMilestoneStatus(bar, pct) {
+        const row = bar.closest('.milestone-row');
+        if (!row) return;
+        const statusEl = row.querySelector('.ms-status');
+        if (!statusEl) return;
+        if (pct >= 100) {
+            statusEl.innerHTML = '<span class="status-done">已完成 ✓</span>';
+        } else if (pct > 0) {
+            statusEl.innerHTML = '<span class="status-wip">进行中</span>';
+        } else {
+            statusEl.innerHTML = '<span class="status-todo">待开始</span>';
+        }
+    }
+    function recalcTotalHours() {
+        let total = 0;
+        document.querySelectorAll('.dim-actual').forEach(el => {
+            total += parseFloat(el.innerText) || 0;
+        });
+        document.getElementById('totalActual').innerText = total;
+        document.getElementById('actualTotalHours').innerText = total;
+
+        const planTotal = 15;
+        const rate = Math.min(100, Math.round((total / planTotal) * 100));
+        document.getElementById('achieveRate').innerText = rate;
+
+        const totalFill = document.getElementById('totalProgressFill');
+        if (totalFill) {
+            totalFill.style.width = rate + '%';
+            const pctText = totalFill.querySelector('.pct-text');
+            if (pctText) pctText.textContent = rate + '%';
+        }
+
+        // 更新汇总摘要
+        const dims = ['me','ai','si','rb','pm'];
+        const names = ['sumMe','sumAi','sumSi','sumRb','sumPm'];
+        dims.forEach((d, i) => {
+            const el = qsAttr(document, `[data-key="dim_${d}_actual"]`);
+            const val = el ? parseFloat(el.innerText) || 0 : 0;
+            const sumEl = document.getElementById(names[i]);
+            if (sumEl) {
+                sumEl.innerText = val;
+                sumEl.className = 'num ' + (val > 0 ? 'green' : 'orange');
+            }
+        });
+
+        // 更新达标判定
+        const dimConfig = { me: 3, ai: 5, si: 4, rb: 2, pm: 1 };
+        dims.forEach(d => {
+            const row = qsAttr(document, `[data-dim="${d}"]`);
+            if (!row) return;
+            const statusEl = row.querySelector('.dim-status');
+            const actualEl = qsAttr(row, '.dim-actual');
+            if (statusEl && actualEl) {
+                const actual = parseFloat(actualEl.innerText) || 0;
+                const plan = dimConfig[d];
+                if (actual >= plan) {
+                    statusEl.innerHTML = '<span style="color:#52c41a;font-weight:bold;">达标 ✓</span>';
+                } else if (actual > 0) {
+                    statusEl.innerHTML = '<span style="color:#fa8c16;font-weight:bold;">进行中</span>';
+                } else {
+                    statusEl.innerHTML = '⏳ 待开始';
+                }
+            }
+        });
+
+        // 更新交付物统计
+        updateDeliverableStats();
+    }
+
+    function updateDeliverableStats() {
+        const checks = document.querySelectorAll('.deliv-check');
+        let done = 0;
+        const total = checks.length;
+        checks.forEach(cb => { if (cb.checked) done++; });
+        const statsEl = document.getElementById('delivStats');
+        if (statsEl) {
+            const rate = total > 0 ? Math.round((done / total) * 100) : 0;
+            statsEl.innerHTML = `完成 ${done} 项 / 计划 ${total} 项（完成率 ${rate}%）`;
+        }
+        // 合计工时
+        let totalHours = 0;
+        document.querySelectorAll('.deliv-hours').forEach(el => {
+            const v = parseFloat(el.innerText) || 0;
+            totalHours += v;
+        });
+        const totalH = document.getElementById('delivTotalHours');
+        if (totalH) totalH.innerText = totalHours + 'h';
+    }
+    function updateEditIndicator(active) {
+        const el = document.getElementById('editIndicator');
+        if (el) {
+            el.classList.toggle('active', active);
+            el.textContent = active ? '🔧 编辑中...' : '✏️ 全部可编辑';
+        }
+    }
+
+    function initEditIndicators() {
+        document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+            el.addEventListener('focus', function() {
+                this.classList.add('editing');
+                updateEditIndicator(true);
+            });
+            el.addEventListener('blur', function() {
+                this.classList.remove('editing');
+                updateEditIndicator(false);
+                if (this.classList.contains('dim-actual')) {
+                    recalcTotalHours();
+                }
+                if (this.classList.contains('deliv-hours') || this.closest('.deliverable-row')) {
+                    updateDeliverableStats();
+                }
+                autoSave();
+            });
+            el.addEventListener('input', function() {
+                if (this.classList.contains('dim-actual')) {
+                    recalcTotalHours();
+                }
+            });
+        });
+
+        document.querySelectorAll('.deliv-check').forEach(cb => {
+            cb.addEventListener('change', function() {
+                updateDeliverableStats();
+                autoSave();
+            });
+        });
+
+        document.querySelectorAll('.daily-check').forEach(cb => {
+            cb.addEventListener('change', function() {
+                updateDayCheck();
+                autoSave();
+            });
+        });
+
+        document.querySelectorAll('.stat-actual').forEach(el => {
+            el.addEventListener('input', function() {
+                recalcStats();
+            });
+            el.addEventListener('blur', function() {
+                recalcStats();
+                autoSave();
+            });
+        });
+    }
+
+    function updateDayCheck() {
+        const cbs = document.querySelectorAll('.daily-check');
+        let checked = 0;
+        const total = cbs.length;
+        cbs.forEach(cb => {
+            const label = cb.closest('.daily-status-label');
+            if (label) label.classList.toggle('checked', cb.checked);
+            if (cb.checked) checked++;
+        });
+        const streak = document.getElementById('checkStreak');
+        if (streak) {
+            if (checked === total) {
+                streak.textContent = `全勤 ${checked} 天 ✓`;
+                streak.style.color = '#52c41a';
+            } else if (checked > 0) {
+                streak.textContent = `打卡 ${checked}/${total} 天`;
+                streak.style.color = '#fa8c16';
+            } else {
+                streak.textContent = '未打卡';
+                streak.style.color = '#999';
+            }
+        }
+    }
+    function recalcStats() {
+        document.querySelectorAll('#statsBody tr[data-stat]').forEach(row => {
+            const actualEl = row.querySelector('.stat-actual');
+            const targetEl = row.querySelector('.stat-target');
+            const resultEl = row.querySelector('.stat-result');
+            if (!actualEl || !targetEl || !resultEl) return;
+
+            const actual = parseFloat(actualEl.innerText) || 0;
+            const op = targetEl.getAttribute('data-op') || '>=';
+            const targetVal = parseFloat(targetEl.getAttribute('data-val')) || 0;
+
+            let pass = false;
+            switch (op) {
+                case '>=': pass = actual >= targetVal; break;
+                case '>':  pass = actual > targetVal; break;
+                case '<=': pass = actual <= targetVal; break;
+                case '<':  pass = actual < targetVal; break;
+                case '==': pass = actual === targetVal; break;
+                default:   pass = actual >= targetVal;
+            }
+
+            if (pass) {
+                resultEl.innerHTML = '<span class="status-done">达标 ✓</span>';
+            } else {
+                resultEl.innerHTML = '<span class="status-todo">未达标</span>';
+            }
+        });
+    }
+
+    let autoSaveTimer = null;
+    function autoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            saveData();
+        }, 2000);
+    }
+
+    function saveToLocal() {
+        saveData();
+        showToast('📀 数据已保存到浏览器 localStorage');
+    }
+
+    function saveToFile() {
+        saveData();
+        // 获取最新数据状态
+        const html = document.documentElement.outerHTML;
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'W1_打卡表_20260513-0517.html';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('💾 文件已下载');
+    }
+
+    function resetAllData() {
+        if (!confirm('确认恢复默认数据？所有修改将丢失。')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+    }
+
+    function updateLastSaved() {
+        const el = document.getElementById('lastSaved');
+        if (el) {
+            const now = new Date();
+            const s = now.toLocaleString('zh-CN');
+            el.textContent = '⏱ 最后保存: ' + s;
+        }
+    }
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(el._timer);
+        el._timer = setTimeout(() => {
+            el.classList.remove('show');
+        }, 2500);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const data = loadData();
+        initDrag();
+        initEditIndicators();
+        updateDayCheck();
+        recalcTotalHours();
+        recalcStats();
+        updateLastSaved();
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveToLocal(); }
+        });
+    });
+</script>
+
+</body>
+</html>
